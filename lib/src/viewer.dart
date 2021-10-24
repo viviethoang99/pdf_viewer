@@ -59,6 +59,8 @@ class PDFViewer extends StatefulWidget {
     this.pickerButtonColor,
     this.pickerIconColor,
     this.onPageChanged,
+    this.backgroundColor,
+    this.indicatorBuilder,
   }) : super(key: key);
 
   final PDFDocument document;
@@ -81,6 +83,9 @@ class PDFViewer extends StatefulWidget {
   final double? maxScale;
   final double? panLimit;
   final ValueChanged<int>? onPageChanged;
+  final Color? backgroundColor;
+  final Widget Function(BuildContext, int? pageNumber, int? totalPages)?
+      indicatorBuilder;
 
   final Widget Function(
     BuildContext,
@@ -110,15 +115,7 @@ class _PDFViewerState extends State<PDFViewer> {
     _pages = List.filled(widget.document.count, null);
     _pageController = widget.controller ?? PageController();
     _pageNumber = _pageController.initialPage + 1;
-    if (!widget.lazyLoad) {
-      widget.document.preloadPages(
-        onZoomChanged: onZoomChanged,
-        zoomSteps: widget.zoomSteps,
-        minScale: widget.minScale,
-        maxScale: widget.maxScale,
-        panLimit: widget.panLimit,
-      );
-    }
+    if (!widget.lazyLoad) _preloadPages();
   }
 
   @override
@@ -127,8 +124,23 @@ class _PDFViewerState extends State<PDFViewer> {
     _pageNumber = _pageController.initialPage + 1;
     _isLoading = true;
     _pages = List.filled(widget.document.count, null);
-    // _loadAllPages();
     _loadPage();
+  }
+
+  void _preloadPages() async {
+    var countvar = 1;
+    for (final _ in List.filled(widget.document.count, null)) {
+      final data = await widget.document.get(
+        page: countvar,
+        onZoomChanged: onZoomChanged,
+        zoomSteps: widget.zoomSteps,
+        minScale: widget.minScale,
+        maxScale: widget.maxScale,
+        panLimit: widget.panLimit,
+      );
+      _pages![countvar - 1] = data;
+      countvar++;
+    }
   }
 
   @override
@@ -165,6 +177,13 @@ class _PDFViewerState extends State<PDFViewer> {
   }
 
   Widget _drawIndicator() {
+    if (widget.indicatorBuilder != null) {
+      return widget.indicatorBuilder!(
+        context,
+        _pageNumber,
+        widget.document.count,
+      );
+    }
     final child = GestureDetector(
         onTap:
             widget.showPicker && widget.document.count > 1 ? _pickPage : null,
@@ -227,6 +246,7 @@ class _PDFViewerState extends State<PDFViewer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: widget.backgroundColor,
       body: Stack(
         children: <Widget>[
           PageView.builder(
