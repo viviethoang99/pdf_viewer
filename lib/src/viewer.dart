@@ -4,7 +4,14 @@ import '../advance_pdf_viewer.dart';
 import 'page_picker.dart';
 
 /// enum to describe indicator position
-enum IndicatorPosition { topLeft, topRight, bottomLeft, bottomRight }
+enum IndicatorPosition {
+  topLeft,
+  topRight,
+  topCenter,
+  bottomLeft,
+  bottomRight,
+  bottomCenter,
+}
 
 /// PDFViewer, a inbuild pdf viewer, you can create your own too.
 /// [document] an instance of `PDFDocument`, document to be loaded
@@ -161,21 +168,27 @@ class _PDFViewerState extends State<PDFViewer> {
     final child = GestureDetector(
         onTap:
             widget.showPicker && widget.document.count > 1 ? _pickPage : null,
-        child: Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: 4.0,
-              horizontal: 16.0,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4.0),
-              color: widget.indicatorBackground,
-            ),
-            child: Text('$_pageNumber/${widget.document.count}',
-                style: TextStyle(
-                  color: widget.indicatorText,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w400,
-                ))));
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 4.0,
+                  horizontal: 16.0,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4.0),
+                  color: widget.indicatorBackground,
+                ),
+                child: Text('$_pageNumber/${widget.document.count}',
+                    style: TextStyle(
+                      color: widget.indicatorText,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w400,
+                    ))),
+          ],
+        ));
 
     switch (widget.indicatorPosition) {
       case IndicatorPosition.topLeft:
@@ -186,6 +199,10 @@ class _PDFViewerState extends State<PDFViewer> {
         return Positioned(bottom: 20, left: 20, child: child);
       case IndicatorPosition.bottomRight:
         return Positioned(bottom: 20, right: 20, child: child);
+      case IndicatorPosition.bottomCenter:
+        return Positioned(bottom: 20, right: 0, left: 0, child: child);
+      case IndicatorPosition.topCenter:
+        return Positioned(top: 20, right: 0, left: 0, child: child);
       default:
         return Positioned(top: 20, right: 20, child: child);
     }
@@ -225,7 +242,7 @@ class _PDFViewerState extends State<PDFViewer> {
             scrollDirection: widget.scrollDirection ?? Axis.horizontal,
             controller: _pageController,
             itemCount: _pages?.length ?? 0,
-            itemBuilder: (context, index) => _pages![index] == null
+            itemBuilder: (_, index) => _pages![index] == null
                 ? Center(
                     child: widget.progressIndicator ??
                         const CircularProgressIndicator.adaptive(),
