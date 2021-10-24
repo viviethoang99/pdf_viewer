@@ -1,46 +1,33 @@
 /// originally from https://github.com/mchome/flutter_advanced_networkimage
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class ZoomableWidget extends StatefulWidget {
   ZoomableWidget({
     Key? key,
-    this.minScale: 0.7,
-    this.maxScale: 1.4,
-    this.initialScale: 1.0,
-    this.initialOffset: Offset.zero,
-    this.initialRotation: 0.0,
-    this.enableZoom: true,
-    this.panLimit: 1.0,
-    this.singleFingerPan: true,
-    this.multiFingersPan: true,
-    this.enableRotate: false,
+    this.minScale = 0.7,
+    this.maxScale = 1.4,
+    this.initialScale = 1.0,
+    this.initialOffset = Offset.zero,
+    this.initialRotation = 0.0,
+    this.enableZoom = true,
+    this.panLimit = 1.0,
+    this.singleFingerPan = true,
+    this.multiFingersPan = true,
+    this.enableRotate = false,
     this.child,
     this.onTap,
-    this.zoomSteps: 0,
-    this.autoCenter: false,
-    this.bounceBackBoundary: true,
-    this.enableFling: true,
-    this.flingFactor: 1.0,
+    this.zoomSteps = 0,
+    this.autoCenter = false,
+    this.bounceBackBoundary = true,
+    this.enableFling = true,
+    this.flingFactor = 1.0,
     this.onZoomChanged,
-    this.resetDuration: const Duration(milliseconds: 250),
-    this.resetCurve: Curves.easeInOut,
-  })  : assert(minScale != null),
-        assert(maxScale != null),
-        assert(initialScale != null),
-        assert(initialOffset != null),
-        assert(initialRotation != null),
-        assert(enableZoom != null),
-        assert(panLimit != null),
-        assert(singleFingerPan != null),
-        assert(multiFingersPan != null),
-        assert(enableRotate != null),
-        assert(zoomSteps != null),
-        assert(autoCenter != null),
-        assert(bounceBackBoundary != null),
-        assert(enableFling != null),
-        assert(flingFactor != null);
+    this.resetDuration = const Duration(milliseconds: 250),
+    this.resetCurve = Curves.easeInOut,
+  }) : super(key: key);
 
   /// The minimum size for scaling.
   final double minScale;
@@ -133,7 +120,7 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
 
   void _onScaleStart(ScaleStartDetails details) {
     if (_childSize == Size.zero) {
-      final RenderBox renderbox = _key.currentContext!.findRenderObject() as RenderBox;
+      final renderbox = _key.currentContext!.findRenderObject() as RenderBox;
       _childSize = renderbox.size;
     }
     setState(() {
@@ -145,16 +132,17 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
-    Size boundarySize = _boundarySize;
+    final boundarySize = _boundarySize;
 
-    Size _marginSize = const Size(100.0, 100.0);
+    const _marginSize = Size(100.0, 100.0);
 
     _duration = const Duration(milliseconds: 50);
     _curve = Curves.easeOut;
 
     setState(() {
-      if (widget.enableRotate)
+      if (widget.enableRotate) {
         _rotation = (_previousRotation + details.rotation).clamp(-pi, pi);
+      }
       if (widget.enableZoom && details.scale != 1.0) {
         _zoom = (_previousZoom * details.scale)
             .clamp(widget.minScale, widget.maxScale);
@@ -164,7 +152,7 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
 
     if ((widget.singleFingerPan && details.scale == 1.0) ||
         (widget.multiFingersPan && details.scale != 1.0)) {
-      Offset _panRealOffset = (details.focalPoint -
+      final _panRealOffset = (details.focalPoint -
               _zoomOriginOffset +
               _previousPanOffset * _previousZoom) /
           _zoom;
@@ -172,17 +160,16 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
       if (widget.panLimit == 0.0) {
         _pan = _panRealOffset;
       } else {
-        Offset _baseOffset = Offset(
+        final _baseOffset = Offset(
           _panRealOffset.dx
               .clamp(-boundarySize.width / 2, boundarySize.width / 2),
           _panRealOffset.dy
               .clamp(-boundarySize.height / 2, boundarySize.height / 2),
         );
 
-        Offset _marginOffset = _panRealOffset - _baseOffset;
-        double _widthFactor = sqrt(_marginOffset.dx.abs()) / _marginSize.width;
-        double _heightFactor =
-            sqrt(_marginOffset.dy.abs()) / _marginSize.height;
+        var _marginOffset = _panRealOffset - _baseOffset;
+        final _widthFactor = sqrt(_marginOffset.dx.abs()) / _marginSize.width;
+        final _heightFactor = sqrt(_marginOffset.dy.abs()) / _marginSize.height;
         _marginOffset = Offset(
           _marginOffset.dx * _widthFactor * 2,
           _marginOffset.dy * _heightFactor * 2,
@@ -194,24 +181,23 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
   }
 
   void _onScaleEnd(ScaleEndDetails details) {
-    Size boundarySize = _boundarySize;
+    final boundarySize = _boundarySize;
 
     _duration = widget.resetDuration;
     _curve = widget.resetCurve;
 
-    final Offset velocity = details.velocity.pixelsPerSecond;
-    final double magnitude = velocity.distance;
+    final velocity = details.velocity.pixelsPerSecond;
+    final magnitude = velocity.distance;
     if (magnitude > 800.0 * _zoom && widget.enableFling) {
-      final Offset direction = velocity / magnitude;
-      final double distance = (Offset.zero & context.size!).shortestSide;
-      final Offset endOffset =
-          _pan + direction * distance * widget.flingFactor * 0.5;
+      final direction = velocity / magnitude;
+      final distance = (Offset.zero & context.size!).shortestSide;
+      final endOffset = _pan + direction * distance * widget.flingFactor * 0.5;
       _pan = Offset(
         endOffset.dx.clamp(-boundarySize.width / 2, boundarySize.width / 2),
         endOffset.dy.clamp(-boundarySize.height / 2, boundarySize.height / 2),
       );
     }
-    Offset _clampedOffset = Offset(
+    var _clampedOffset = Offset(
       _pan.dx.clamp(-boundarySize.width / 2, boundarySize.width / 2),
       _pan.dy.clamp(-boundarySize.height / 2, boundarySize.height / 2),
     );
@@ -222,7 +208,7 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
   }
 
   Size get _boundarySize {
-    Size _boundarySize = Size(
+    final _boundarySize = Size(
           (_containerSize.width == _childSize.width)
               ? (_containerSize.width - _childSize.width / _zoom).abs()
               : (_containerSize.width - _childSize.width * _zoom).abs() / _zoom,
@@ -237,15 +223,16 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
   }
 
   void _handleDoubleTap() {
-    double _stepLength = 0.0;
+    var _stepLength = 0.0;
 
     _duration = widget.resetDuration;
     _curve = widget.resetCurve;
 
-    if (widget.zoomSteps > 0)
+    if (widget.zoomSteps > 0) {
       _stepLength = (widget.maxScale - 1.0) / widget.zoomSteps;
+    }
 
-    double _tmpZoom = _zoom + _stepLength;
+    var _tmpZoom = _zoom + _stepLength;
     if (_tmpZoom > widget.maxScale || _stepLength == 0.0) _tmpZoom = 1.0;
 
     setState(() {
@@ -263,7 +250,7 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.child == null) return SizedBox();
+    if (widget.child == null) return const SizedBox.shrink();
 
     return CustomMultiChildLayout(
       delegate: _ZoomableWidgetLayout(),
@@ -290,12 +277,12 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
         LayoutId(
           id: _ZoomableWidgetLayout.gestureContainer,
           child: GestureDetector(
-            child: Container(color: Color(0)),
             onScaleStart: _onScaleStart,
             onScaleUpdate: _onScaleUpdate,
             onScaleEnd: widget.bounceBackBoundary ? _onScaleEnd : null,
             onDoubleTap: _handleDoubleTap,
             onTap: widget.onTap,
+            child: Container(color: Colors.black),
           ),
         ),
       ],
@@ -306,8 +293,8 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
 class _ZoomableWidgetLayout extends MultiChildLayoutDelegate {
   _ZoomableWidgetLayout();
 
-  static final String gestureContainer = 'gesturecontainer';
-  static final String painter = 'painter';
+  static const gestureContainer = 'gesturecontainer';
+  static const painter = 'painter';
 
   @override
   void performLayout(Size size) {
@@ -350,13 +337,16 @@ class _ZoomableChildState extends AnimatedWidgetBaseState<_ZoomableChild> {
   DoubleTween? _rotation;
 
   @override
-  void forEachTween(visitor) {
-    _zoom = visitor(
-        _zoom, widget.zoom, (dynamic value) => DoubleTween(begin: value)) as DoubleTween?;
+  void forEachTween(TweenVisitor<dynamic> visitor) {
+    _zoom = visitor(_zoom, widget.zoom,
+            (dynamic value) => DoubleTween(begin: value as double?))
+        as DoubleTween?;
     _panOffset = visitor(_panOffset, widget.panOffset,
-        (dynamic value) => OffsetTween(begin: value)) as OffsetTween?;
+            (dynamic value) => OffsetTween(begin: value as Offset?))
+        as OffsetTween?;
     _rotation = visitor(_rotation, widget.rotation,
-        (dynamic value) => DoubleTween(begin: value)) as DoubleTween?;
+            (dynamic value) => DoubleTween(begin: value as double?))
+        as DoubleTween?;
   }
 
   @override
@@ -381,12 +371,12 @@ class DoubleTween extends Tween<double?> {
   DoubleTween({double? begin, double? end}) : super(begin: begin, end: end);
 
   @override
-  double lerp(double t) => (begin! + (end! - begin!) * t);
+  double lerp(double t) => begin! + (end! - begin!) * t;
 }
 
 class OffsetTween extends Tween<Offset?> {
   OffsetTween({Offset? begin, Offset? end}) : super(begin: begin, end: end);
 
   @override
-  Offset lerp(double t) => (begin! + (end! - begin!) * t);
+  Offset lerp(double t) => begin! + (end! - begin!) * t;
 }

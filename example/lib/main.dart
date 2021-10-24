@@ -18,19 +18,19 @@ class _MyAppState extends State<MyApp> {
     loadDocument();
   }
 
-  loadDocument() async {
+  void loadDocument() async {
     document = await PDFDocument.fromAsset('assets/sample.pdf');
 
     setState(() => _isLoading = false);
   }
 
-  changePDF(value) async {
+  void changePDF(value) async {
     setState(() => _isLoading = true);
     if (value == 1) {
       document = await PDFDocument.fromAsset('assets/sample2.pdf');
     } else if (value == 2) {
       document = await PDFDocument.fromURL(
-        "http://conorlastowka.com/book/CitationNeededBook-Sample.pdf",
+        'http://conorlastowka.com/book/CitationNeededBook-Sample.pdf',
         /* cacheManager: CacheManager(
           Config(
             "customCacheKey",
@@ -52,21 +52,21 @@ class _MyAppState extends State<MyApp> {
         drawer: Drawer(
           child: Column(
             children: <Widget>[
-              SizedBox(height: 36),
+              const SizedBox(height: 36),
               ListTile(
-                title: Text('Load from Assets'),
+                title: const Text('Load from Assets'),
                 onTap: () {
                   changePDF(1);
                 },
               ),
               ListTile(
-                title: Text('Load from URL'),
+                title: const Text('Load from URL'),
                 onTap: () {
                   changePDF(2);
                 },
               ),
               ListTile(
-                title: Text('Restore default'),
+                title: const Text('Restore default'),
                 onTap: () {
                   changePDF(3);
                 },
@@ -79,7 +79,7 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Center(
           child: _isLoading
-              ? Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator())
               : PDFViewer(
                   document: document,
                   zoomSteps: 1,
