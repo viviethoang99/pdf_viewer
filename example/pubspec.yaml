@@ -1,6 +1,6 @@
 name: advance_pdf_viewer_example
 description: Demonstrates how to use the advance_pdf_viewer plugin.
-publish_to: 'none'
+publish_to: "none"
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
@@ -18,7 +18,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
 
 flutter:
   uses-material-design: true

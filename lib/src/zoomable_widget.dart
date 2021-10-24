@@ -282,7 +282,7 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
             onScaleEnd: widget.bounceBackBoundary ? _onScaleEnd : null,
             onDoubleTap: _handleDoubleTap,
             onTap: widget.onTap,
-            child: Container(color: Colors.black),
+            child: Container(color: const Color(0x00000000)),
           ),
         ),
       ],
