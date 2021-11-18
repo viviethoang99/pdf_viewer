@@ -15,33 +15,29 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    loadDocument();
+    changePDF();
   }
 
-  void loadDocument() async {
-    document = await PDFDocument.fromAsset('assets/sample.pdf');
+  // void loadDocument() async {
+  //   document = await PDFDocument.fromAsset('assets/sample.pdf');
 
-    setState(() => _isLoading = false);
-  }
+  //   setState(() => _isLoading = false);
+  // }
 
-  void changePDF(value) async {
+  void changePDF() async {
     setState(() => _isLoading = true);
-    if (value == 1) {
-      document = await PDFDocument.fromAsset('assets/sample2.pdf');
-    } else if (value == 2) {
-      document = await PDFDocument.fromURL(
-        'http://conorlastowka.com/book/CitationNeededBook-Sample.pdf',
-        /* cacheManager: CacheManager(
+
+    document = await PDFDocument.fromURL(
+      'http://conorlastowka.com/book/CitationNeededBook-Sample.pdf',
+      /* cacheManager: CacheManager(
           Config(
             "customCacheKey",
             stalePeriod: const Duration(days: 2),
             maxNrOfCacheObjects: 10,
           ),
         ), */
-      );
-    } else {
-      document = await PDFDocument.fromAsset('assets/sample.pdf');
-    }
+    );
+
     setState(() => _isLoading = false);
   }
 
@@ -49,31 +45,31 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        drawer: Drawer(
-          child: Column(
-            children: <Widget>[
-              const SizedBox(height: 36),
-              ListTile(
-                title: const Text('Load from Assets'),
-                onTap: () {
-                  changePDF(1);
-                },
-              ),
-              ListTile(
-                title: const Text('Load from URL'),
-                onTap: () {
-                  changePDF(2);
-                },
-              ),
-              ListTile(
-                title: const Text('Restore default'),
-                onTap: () {
-                  changePDF(3);
-                },
-              ),
-            ],
-          ),
-        ),
+        // drawer: Drawer(
+        //   child: Column(
+        //     children: <Widget>[
+        //       const SizedBox(height: 36),
+        //       ListTile(
+        //         title: const Text('Load from Assets'),
+        //         onTap: () {
+        //           changePDF(1);
+        //         },
+        //       ),
+        //       ListTile(
+        //         title: const Text('Load from URL'),
+        //         onTap: () {
+        //           changePDF(2);
+        //         },
+        //       ),
+        //       ListTile(
+        //         title: const Text('Restore default'),
+        //         onTap: () {
+        //           changePDF(3);
+        //         },
+        //       ),
+        //     ],
+        //   ),
+        // ),
         appBar: AppBar(
           title: const Text('FlutterPluginPDFViewer'),
         ),
@@ -84,9 +80,9 @@ class _MyAppState extends State<MyApp> {
                   document: document,
                   zoomSteps: 1,
                   //uncomment below line to preload all pages
-                  // lazyLoad: false,
+                  lazyLoad: false,
                   // uncomment below line to scroll vertically
-                  // scrollDirection: Axis.vertical,
+                  scrollDirection: Axis.vertical,
 
                   //uncomment below code to replace bottom navigation with your own
                   /* navigationBuilder:
