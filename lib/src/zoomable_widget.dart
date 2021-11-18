@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class ZoomableWidget extends StatefulWidget {
-  ZoomableWidget({
+  const ZoomableWidget({
     Key? key,
     this.minScale = 0.7,
     this.maxScale = 1.4,
@@ -281,7 +281,7 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
             onScaleUpdate: _onScaleUpdate,
             onScaleEnd: widget.bounceBackBoundary ? _onScaleEnd : null,
             onDoubleTap: _handleDoubleTap,
-            onTap: widget.onTap,
+            // onTap: widget.onTap,
             child: Container(color: const Color(0x00000000)),
           ),
         ),

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:advance_pdf_viewer/advance_pdf_viewer.dart';
+import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
@@ -10,6 +10,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isLoading = true;
+  bool _showIndicator = false;
   PDFDocument document;
 
   @override
@@ -45,6 +46,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        resizeToAvoidBottomInset: false,
         // drawer: Drawer(
         //   child: Column(
         //     children: <Widget>[
@@ -76,16 +78,26 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : PDFViewer(
-                  document: document,
-                  zoomSteps: 1,
-                  //uncomment below line to preload all pages
-                  lazyLoad: false,
-                  // uncomment below line to scroll vertically
-                  scrollDirection: Axis.vertical,
-
-                  //uncomment below code to replace bottom navigation with your own
-                  /* navigationBuilder:
+              : InkWell(
+                  onTap: () {
+                    setState(() {
+                      _showIndicator = !_showIndicator;
+                    });
+                  },
+                  child: PDFViewer(
+                    document: document,
+                    zoomSteps: 1,
+                    maxScale: 1.2,
+                    //uncomment below line to preload all pages
+                    lazyLoad: false,
+                    // uncomment below line to scroll vertically
+                    scrollDirection: Axis.vertical,
+                    indicatorPosition: IndicatorPosition.bottomCenter,
+                    showNavigation: false,
+                    showIndicator: _showIndicator,
+                    //uncomment below code to replace bottom navigation 
+                    //with your own
+                    /* navigationBuilder:
                       (context, page, totalPages, jumpToPage, animateToPage) {
                     return ButtonBar(
                       alignment: MainAxisAlignment.spaceEvenly,
@@ -117,6 +129,7 @@ class _MyAppState extends State<MyApp> {
                       ],
                     );
                   }, */
+                  ),
                 ),
         ),
       ),

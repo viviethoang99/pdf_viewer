@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../advance_pdf_viewer.dart';
-import 'page_picker.dart';
 
 /// enum to describe indicator position
 enum IndicatorPosition {
@@ -108,6 +107,7 @@ class _PDFViewerState extends State<PDFViewer> {
   late PageController _pageController;
   final animationDuration = const Duration(milliseconds: 200);
   final animationCurve = Curves.easeIn;
+  bool _showTextField = false;
 
   @override
   void initState() {
@@ -145,6 +145,9 @@ class _PDFViewerState extends State<PDFViewer> {
 
   @override
   void didUpdateWidget(PDFViewer oldWidget) {
+    if (_showTextField && widget.showIndicator) {
+      setState(() => _showTextField = false);
+    }
     super.didUpdateWidget(oldWidget);
   }
 
@@ -184,28 +187,67 @@ class _PDFViewerState extends State<PDFViewer> {
         widget.document.count,
       );
     }
+
     final child = GestureDetector(
-        onTap:
-            widget.showPicker && widget.document.count > 1 ? _pickPage : null,
+        onTap: () {
+          if (widget.showPicker && widget.document.count > 1) {
+            setState(() => _showTextField = true);
+          }
+        },
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 4.0,
-                  horizontal: 16.0,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4.0),
-                  color: widget.indicatorBackground,
-                ),
-                child: Text('$_pageNumber/${widget.document.count}',
-                    style: TextStyle(
-                      color: widget.indicatorText,
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w400,
-                    ))),
+              padding: const EdgeInsets.symmetric(
+                vertical: 4.0,
+                horizontal: 16.0,
+              ),
+              height: 30,
+              width: _showTextField ? 80 : null,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4.0),
+                color: widget.indicatorBackground,
+              ),
+              child: _showTextField
+                  ? TextFormField(
+                      autofocus: true,
+                      textAlignVertical: TextAlignVertical.center,
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.text,
+                      maxLength: 3,
+                      textInputAction: TextInputAction.done,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                        counterText: '',
+                        hintText: '$_pageNumber/${widget.document.count}',
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: widget.indicatorText,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      onFieldSubmitted: _onSubmit,
+                    )
+                  : Text(
+                      '$_pageNumber/${widget.document.count}',
+                      style: TextStyle(
+                        color: widget.indicatorText,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+            ),
           ],
         ));
 
@@ -224,22 +266,6 @@ class _PDFViewerState extends State<PDFViewer> {
         return Positioned(top: 20, right: 0, left: 0, child: child);
       default:
         return Positioned(top: 20, right: 20, child: child);
-    }
-  }
-
-  Future<void> _pickPage() async {
-    final value = await showDialog<int?>(
-      context: context,
-      builder: (_) => PagePicker(
-        title: widget.tooltip.pick,
-        maxValue: widget.document.count,
-        initialValue: _pageNumber,
-      ),
-    );
-
-    if (value != null) {
-      _pageNumber = value;
-      _jumpToPage();
     }
   }
 
@@ -274,19 +300,6 @@ class _PDFViewerState extends State<PDFViewer> {
               : const SizedBox.shrink(),
         ],
       ),
-      floatingActionButton: widget.showPicker && widget.document.count > 1
-          ? FloatingActionButton(
-              elevation: 4.0,
-              tooltip: widget.tooltip.jump,
-              backgroundColor: widget.pickerButtonColor ?? Colors.blue,
-              onPressed: _pickPage,
-              child: Icon(
-                Icons.view_carousel,
-                color: widget.pickerIconColor ?? Colors.white,
-              ),
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: (widget.showNavigation && widget.document.count > 1)
           ? widget.navigationBuilder != null
               ? widget.navigationBuilder!(
@@ -362,5 +375,21 @@ class _PDFViewerState extends State<PDFViewer> {
                 )
           : const SizedBox.shrink(),
     );
+  }
+
+  void _onSubmit(String? value) {
+    if (value != null && isNumericUsingRegularExpression(value)) {
+      final _page = int.parse(value);
+      _pageNumber =
+          _page > widget.document.count ? widget.document.count : _page;
+      _jumpToPage();
+    }
+    setState(() => _showTextField = false);
+  }
+
+  bool isNumericUsingRegularExpression(String string) {
+    final numericRegex = RegExp(r'^-?(([0-9]*)|(([0-9]*)\.([0-9]*)))$');
+
+    return numericRegex.hasMatch(string);
   }
 }
