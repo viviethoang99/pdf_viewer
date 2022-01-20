@@ -1,7 +1,6 @@
 #import "FlutterPluginPdfViewerPlugin.h"
 
 static NSString* const kDirectory = @"FlutterPluginPdfViewer";
-static NSString* const kFilePath = @"file:///";
 static NSString* kFileName = @"";
 
 @implementation FlutterPluginPdfViewerPlugin
@@ -31,51 +30,20 @@ static NSString* kFileName = @"";
 
 -(NSString *)getNumberOfPages:(NSString *)url
 {
-    NSURL * sourcePDFUrl;
-    if([url containsString:kFilePath]){
-        sourcePDFUrl = [NSURL URLWithString:url];
-    }else{
-        sourcePDFUrl = [NSURL URLWithString:[kFilePath stringByAppendingString:url]];
-    }
-    CGPDFDocumentRef SourcePDFDocument = CGPDFDocumentCreateWithURL((__bridge CFURLRef)sourcePDFUrl);
-    size_t numberOfPages = CGPDFDocumentGetNumberOfPages(SourcePDFDocument);
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-    NSString *temporaryDirectory = [paths objectAtIndex:0];
-    NSString *filePathAndDirectory = [temporaryDirectory stringByAppendingPathComponent:kDirectory];
-    NSError *error;
-
-    // Clear cache folder
-    if ([[NSFileManager defaultManager] fileExistsAtPath:filePathAndDirectory]) {
-        NSLog(@"[FlutterPluginPDFViewer] Removing old documents cache");
-        [[NSFileManager defaultManager] removeItemAtPath:filePathAndDirectory error:&error];
-    }
-
-    if (![[NSFileManager defaultManager] createDirectoryAtPath:filePathAndDirectory
-                                   withIntermediateDirectories:YES
-                                                    attributes:nil
-                                                         error:&error])
-    {
-        NSLog(@"Create directory error: %@", error);
-        return nil;
-    }
-    // Generate random file size for this document
-
-    kFileName = [[NSUUID UUID] UUIDString];
+    NSURL * sourcePDFUrl = [[NSURL alloc] initFileURLWithPath:url];
+    CGPDFDocumentRef sourcePDFDocument = CGPDFDocumentCreateWithURL((__bridge CFURLRef)sourcePDFUrl);
+    size_t numberOfPages = CGPDFDocumentGetNumberOfPages(sourcePDFDocument);
+    CGPDFDocumentRelease(sourcePDFDocument);
+   
     NSLog(@"[FlutterPluginPdfViewer] File has %zd pages", numberOfPages);
-    NSLog(@"[FlutterPluginPdfViewer] File will be saved in cache as %@", kFileName);
     return [NSString stringWithFormat:@"%zd", numberOfPages];
 }
 
 -(NSString*)getPage:(NSString *)url ofPage:(size_t)pageNumber
 {
-    NSURL * sourcePDFUrl;
-    if([url containsString:kFilePath]){
-        sourcePDFUrl = [NSURL URLWithString:url];
-    }else{
-        sourcePDFUrl = [NSURL URLWithString:[kFilePath stringByAppendingString:url]];
-    }
-    CGPDFDocumentRef SourcePDFDocument = CGPDFDocumentCreateWithURL((__bridge CFURLRef)sourcePDFUrl);
-    size_t numberOfPages = CGPDFDocumentGetNumberOfPages(SourcePDFDocument);
+    NSURL * sourcePDFUrl = [[NSURL alloc] initFileURLWithPath:url];
+    CGPDFDocumentRef sourcePDFDocument = CGPDFDocumentCreateWithURL((__bridge CFURLRef)sourcePDFUrl);
+    size_t numberOfPages = CGPDFDocumentGetNumberOfPages(sourcePDFDocument);
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     NSString *temporaryDirectory = [paths objectAtIndex:0];
     NSString *filePathAndDirectory = [temporaryDirectory stringByAppendingPathComponent:kDirectory];
@@ -93,11 +61,11 @@ static NSString* kFileName = @"";
         NSLog(@"Create directory error: %@", error);
         return nil;
     }
-    CGPDFPageRef SourcePDFPage = CGPDFDocumentGetPage(SourcePDFDocument, pageNumber);
-    CGPDFPageRetain(SourcePDFPage);
+    CGPDFPageRef sourcePDFPage = CGPDFDocumentGetPage(sourcePDFDocument, pageNumber);
+    CGPDFPageRetain(sourcePDFPage);
     NSString *relativeOutputFilePath = [NSString stringWithFormat:@"%@/%@-%d.png", kDirectory, kFileName, (int)pageNumber];
     NSString *imageFilePath = [temporaryDirectory stringByAppendingPathComponent:relativeOutputFilePath];
-    CGRect sourceRect = CGPDFPageGetBoxRect(SourcePDFPage, kCGPDFMediaBox);
+    CGRect sourceRect = CGPDFPageGetBoxRect(sourcePDFPage, kCGPDFMediaBox);
     UIGraphicsBeginPDFContextToFile(imageFilePath, sourceRect, nil);
     // Calculate resolution
     // Set DPI to 300
@@ -115,11 +83,13 @@ static NSString* kFileName = @"";
     CGContextTranslateCTM(currentContext, 0.0, height);
     CGContextScaleCTM(currentContext, dpi, -dpi);
     CGContextSaveGState(currentContext);
-    CGContextDrawPDFPage (currentContext, SourcePDFPage);
+    CGContextDrawPDFPage (currentContext, sourcePDFPage);
     CGContextRestoreGState(currentContext);
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     [UIImagePNGRepresentation(image) writeToFile: imageFilePath atomically:YES];
+    CGPDFPageRelease(sourcePDFPage);
+    CGPDFDocumentRelease(sourcePDFDocument);
     return imageFilePath;
 }
 
