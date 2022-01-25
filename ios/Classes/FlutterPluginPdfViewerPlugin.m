@@ -21,13 +21,27 @@ static NSString* kFileName = @"";
           } else if ([@"getNumberOfPages" isEqualToString:call.method]) {
               NSString * filePath = call.arguments[@"filePath"];
               result([self getNumberOfPages:filePath]);
-          }
-          else {
+          } else if ([@"clearCache" isEqualToString:call.method]) {
+              [self clearCache];
+              result(@"clearCache");
+          } else {
               result(FlutterMethodNotImplemented);
           }
       });
 }
 
+-(void)clearCache{
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *filePathAndDirectory = [documentsDirectory stringByAppendingPathComponent:kDirectory];
+    NSError *error;
+
+    // Clear cache folder
+    if ([[NSFileManager defaultManager] fileExistsAtPath:filePathAndDirectory]) {
+        NSLog(@"[FlutterPluginPDFViewer] Removing old documents cache");
+        [[NSFileManager defaultManager] removeItemAtPath:filePathAndDirectory error:&error];
+    }
+}
 -(NSString *)getNumberOfPages:(NSString *)url
 {
     NSURL * sourcePDFUrl = [[NSURL alloc] initFileURLWithPath:url];

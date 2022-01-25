@@ -277,9 +277,9 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
         LayoutId(
           id: _ZoomableWidgetLayout.gestureContainer,
           child: GestureDetector(
-            onScaleStart: _onScaleStart,
-            onScaleUpdate: _onScaleUpdate,
-            onScaleEnd: widget.bounceBackBoundary ? _onScaleEnd : null,
+            // onScaleStart: _onScaleStart,
+            // onScaleUpdate: _onScaleUpdate,
+            // onScaleEnd: widget.bounceBackBoundary ? _onScaleEnd : null,
             onDoubleTap: _handleDoubleTap,
             // onTap: widget.onTap,
             child: Container(color: const Color(0x00000000)),

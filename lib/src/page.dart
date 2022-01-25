@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/painting.dart';
 import 'package:flutter/widgets.dart';
 
 import 'zoomable_widget.dart';
@@ -63,6 +62,12 @@ class _PDFPageState extends State<PDFPage> {
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    provider.evict();
+    super.dispose();
   }
 
   @override
