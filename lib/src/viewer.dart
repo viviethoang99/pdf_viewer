@@ -1,6 +1,5 @@
+import 'package:advance_pdf_viewer/advance_pdf_viewer.dart';
 import 'package:flutter/material.dart';
-
-import '../advance_pdf_viewer.dart';
 
 /// enum to describe indicator position
 enum IndicatorPosition {
@@ -112,6 +111,10 @@ class _PDFViewerState extends State<PDFViewer> {
   @override
   void initState() {
     super.initState();
+    _initialize();
+  }
+
+  void _initialize() {
     _pages = List.filled(widget.document.count, null);
     _pageController = widget.controller ?? PageController();
     _pageNumber = _pageController.initialPage + 1;
@@ -119,15 +122,28 @@ class _PDFViewerState extends State<PDFViewer> {
   }
 
   @override
+  void didUpdateWidget(PDFViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_showTextField && widget.showIndicator) {
+      setState(() => _showTextField = false);
+    }
+    if (oldWidget.document.filePath != widget.document.filePath) {
+      _initialize();
+      _isLoading = true;
+      _loadPage();
+    }
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _pageNumber = _pageController.initialPage + 1;
+    _initialize();
     _isLoading = true;
-    _pages = List.filled(widget.document.count, null);
+
     _loadPage();
   }
 
-  void _preloadPages() async {
+  Future<void> _preloadPages() async {
     var countvar = 1;
     for (final _ in List.filled(widget.document.count, null)) {
       final data = await widget.document.get(
@@ -139,16 +155,9 @@ class _PDFViewerState extends State<PDFViewer> {
         panLimit: widget.panLimit,
       );
       _pages![countvar - 1] = data;
+
       countvar++;
     }
-  }
-
-  @override
-  void didUpdateWidget(PDFViewer oldWidget) {
-    if (_showTextField && widget.showIndicator) {
-      setState(() => _showTextField = false);
-    }
-    super.didUpdateWidget(oldWidget);
   }
 
   void onZoomChanged(double scale) {
@@ -171,8 +180,11 @@ class _PDFViewerState extends State<PDFViewer> {
   }
 
   void _animateToPage({int? page}) {
-    _pageController.animateToPage(page ?? _pageNumber - 1,
-        duration: animationDuration, curve: animationCurve);
+    _pageController.animateToPage(
+      page ?? _pageNumber - 1,
+      duration: animationDuration,
+      curve: animationCurve,
+    );
   }
 
   void _jumpToPage({int? page}) {
@@ -189,67 +201,68 @@ class _PDFViewerState extends State<PDFViewer> {
     }
 
     final child = GestureDetector(
-        onTap: () {
-          if (widget.showPicker && widget.document.count > 1) {
-            setState(() => _showTextField = true);
-          }
-        },
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: 4.0,
-                horizontal: 16.0,
-              ),
-              height: 30,
-              width: _showTextField ? 80 : null,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4.0),
-                color: widget.indicatorBackground,
-              ),
-              child: _showTextField
-                  ? TextFormField(
-                      autofocus: true,
-                      textAlignVertical: TextAlignVertical.center,
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.text,
-                      maxLength: 3,
-                      textInputAction: TextInputAction.done,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        errorBorder: InputBorder.none,
-                        disabledBorder: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                        counterText: '',
-                        hintText: '$_pageNumber/${widget.document.count}',
-                        hintStyle: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      style: TextStyle(
-                        color: widget.indicatorText,
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      onFieldSubmitted: _onSubmit,
-                    )
-                  : Text(
-                      '$_pageNumber/${widget.document.count}',
-                      style: TextStyle(
-                        color: widget.indicatorText,
+      onTap: () {
+        if (widget.showPicker && widget.document.count > 1) {
+          setState(() => _showTextField = true);
+        }
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              vertical: 4.0,
+              horizontal: 16.0,
+            ),
+            height: 30,
+            width: _showTextField ? 80 : null,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4.0),
+              color: widget.indicatorBackground,
+            ),
+            child: _showTextField
+                ? TextFormField(
+                    autofocus: true,
+                    textAlignVertical: TextAlignVertical.center,
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.text,
+                    maxLength: 3,
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                      counterText: '',
+                      hintText: '$_pageNumber/${widget.document.count}',
+                      hintStyle: const TextStyle(
+                        color: Colors.grey,
                         fontSize: 16.0,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
-            ),
-          ],
-        ));
+                    style: TextStyle(
+                      color: widget.indicatorText,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    onFieldSubmitted: _onSubmit,
+                  )
+                : Text(
+                    '$_pageNumber/${widget.document.count}',
+                    style: TextStyle(
+                      color: widget.indicatorText,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
 
     switch (widget.indicatorPosition) {
       case IndicatorPosition.topLeft:
@@ -276,7 +289,7 @@ class _PDFViewerState extends State<PDFViewer> {
       body: Stack(
         children: <Widget>[
           PageView.builder(
-            physics: NeverScrollableScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             onPageChanged: (page) {
               setState(() => _pageNumber = page + 1);
               _loadPage();
@@ -292,9 +305,10 @@ class _PDFViewerState extends State<PDFViewer> {
                   )
                 : _pages![index]!,
           ),
-          (widget.showIndicator && !_isLoading)
-              ? _drawIndicator()
-              : const SizedBox.shrink(),
+          if (widget.showIndicator && !_isLoading)
+            _drawIndicator()
+          else
+            const SizedBox.shrink(),
         ],
       ),
       bottomNavigationBar: (widget.showNavigation && widget.document.count > 1)

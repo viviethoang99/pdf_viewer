@@ -120,7 +120,7 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
 
   void _onScaleStart(ScaleStartDetails details) {
     if (_childSize == Size.zero) {
-      final renderbox = _key.currentContext!.findRenderObject() as RenderBox;
+      final renderbox = _key.currentContext!.findRenderObject()! as RenderBox;
       _childSize = renderbox.size;
     }
     setState(() {
@@ -298,11 +298,15 @@ class _ZoomableWidgetLayout extends MultiChildLayoutDelegate {
 
   @override
   void performLayout(Size size) {
-    layoutChild(gestureContainer,
-        BoxConstraints.tightFor(width: size.width, height: size.height));
+    layoutChild(
+      gestureContainer,
+      BoxConstraints.tightFor(width: size.width, height: size.height),
+    );
     positionChild(gestureContainer, Offset.zero);
-    layoutChild(painter,
-        BoxConstraints.tightFor(width: size.width, height: size.height));
+    layoutChild(
+      painter,
+      BoxConstraints.tightFor(width: size.width, height: size.height),
+    );
     positionChild(painter, Offset.zero);
   }
 
@@ -338,26 +342,36 @@ class _ZoomableChildState extends AnimatedWidgetBaseState<_ZoomableChild> {
 
   @override
   void forEachTween(TweenVisitor<dynamic> visitor) {
-    _zoom = visitor(_zoom, widget.zoom,
-            (dynamic value) => DoubleTween(begin: value as double?))
-        as DoubleTween?;
-    _panOffset = visitor(_panOffset, widget.panOffset,
-            (dynamic value) => OffsetTween(begin: value as Offset?))
-        as OffsetTween?;
-    _rotation = visitor(_rotation, widget.rotation,
-            (dynamic value) => DoubleTween(begin: value as double?))
-        as DoubleTween?;
+    _zoom = visitor(
+      _zoom,
+      widget.zoom,
+      (dynamic value) => DoubleTween(begin: value as double?),
+    ) as DoubleTween?;
+    _panOffset = visitor(
+      _panOffset,
+      widget.panOffset,
+      (dynamic value) => OffsetTween(begin: value as Offset?),
+    ) as OffsetTween?;
+    _rotation = visitor(
+      _rotation,
+      widget.rotation,
+      (dynamic value) => DoubleTween(begin: value as double?),
+    ) as DoubleTween?;
   }
 
   @override
   Widget build(BuildContext context) {
     return Transform(
       alignment: Alignment.center,
-      origin: Offset(-(_panOffset!.evaluate(animation)?.dx ?? 0),
-          -(_panOffset!.evaluate(animation)?.dy ?? 0)),
+      origin: Offset(
+        -(_panOffset!.evaluate(animation)?.dx ?? 0),
+        -(_panOffset!.evaluate(animation)?.dy ?? 0),
+      ),
       transform: Matrix4.identity()
-        ..translate(_panOffset?.evaluate(animation)?.dx,
-            _panOffset?.evaluate(animation)?.dy ?? 0)
+        ..translate(
+          _panOffset?.evaluate(animation)?.dx,
+          _panOffset?.evaluate(animation)?.dy ?? 0,
+        )
         ..scale(_zoom!.evaluate(animation), _zoom!.evaluate(animation)),
       child: Transform.rotate(
         angle: _rotation!.evaluate(animation) ?? 0,
