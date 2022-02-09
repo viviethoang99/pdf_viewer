@@ -30,6 +30,19 @@ static NSString* kFileName = @"";
       });
 }
 
+-(void)clearCache{
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *filePathAndDirectory = [documentsDirectory stringByAppendingPathComponent:kDirectory];
+    NSError *error;
+
+    // Clear cache folder
+    if ([[NSFileManager defaultManager] fileExistsAtPath:filePathAndDirectory]) {
+        NSLog(@"[FlutterPluginPDFViewer] Removing old documents cache");
+        [[NSFileManager defaultManager] removeItemAtPath:filePathAndDirectory error:&error];
+    }
+}
+
 -(NSString *)getNumberOfPages:(NSString *)url
 {
     NSURL * sourcePDFUrl = [[NSURL alloc] initFileURLWithPath:url];
@@ -46,14 +59,18 @@ static NSString* kFileName = @"";
         NSLog(@"[FlutterPluginPDFViewer] Removing old documents cache");
         [[NSFileManager defaultManager] removeItemAtPath:filePathAndDirectory error:&error];
     }
-}
--(NSString *)getNumberOfPages:(NSString *)url
-{
-    NSURL * sourcePDFUrl = [[NSURL alloc] initFileURLWithPath:url];
-    CGPDFDocumentRef sourcePDFDocument = CGPDFDocumentCreateWithURL((__bridge CFURLRef)sourcePDFUrl);
-    size_t numberOfPages = CGPDFDocumentGetNumberOfPages(sourcePDFDocument);
-    CGPDFDocumentRelease(sourcePDFDocument);
-   
+
+    if (![[NSFileManager defaultManager] createDirectoryAtPath:filePathAndDirectory
+                                   withIntermediateDirectories:YES
+                                                    attributes:nil
+                                                         error:&error])
+    {
+        NSLog(@"Create directory error: %@", error);
+        return nil;
+    }
+    // Generate random file size for this document
+
+    kFileName = [[NSUUID UUID] UUIDString];
     NSLog(@"[FlutterPluginPdfViewer] File has %zd pages", numberOfPages);
     return [NSString stringWithFormat:@"%zd", numberOfPages];
 }
