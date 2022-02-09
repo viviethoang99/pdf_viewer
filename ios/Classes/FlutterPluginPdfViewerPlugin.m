@@ -30,10 +30,15 @@ static NSString* kFileName = @"";
       });
 }
 
--(void)clearCache{
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *documentsDirectory = [paths objectAtIndex:0];
-    NSString *filePathAndDirectory = [documentsDirectory stringByAppendingPathComponent:kDirectory];
+-(NSString *)getNumberOfPages:(NSString *)url
+{
+    NSURL * sourcePDFUrl = [[NSURL alloc] initFileURLWithPath:url];
+    CGPDFDocumentRef sourcePDFDocument = CGPDFDocumentCreateWithURL((__bridge CFURLRef)sourcePDFUrl);
+    size_t numberOfPages = CGPDFDocumentGetNumberOfPages(sourcePDFDocument);
+    CGPDFDocumentRelease(sourcePDFDocument);
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString *temporaryDirectory = [paths objectAtIndex:0];
+    NSString *filePathAndDirectory = [temporaryDirectory stringByAppendingPathComponent:kDirectory];
     NSError *error;
 
     // Clear cache folder

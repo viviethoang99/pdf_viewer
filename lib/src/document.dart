@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:advance_pdf_viewer/src/page.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path_provider/path_provider.dart';
-
-import 'page.dart';
 
 class PDFDocument {
   static const _channel = MethodChannel('flutter_plugin_pdf_viewer');
@@ -13,7 +12,8 @@ class PDFDocument {
   String? _filePath;
   late int count;
   final _pages = <PDFPage>[];
-  bool _preloaded = false;
+  var _preloaded = false;
+  String? get filePath => _filePath;
 
   /// Load a PDF File from a given File
   /// [File file], file to be loaded
@@ -38,8 +38,11 @@ class PDFDocument {
   /// [Map<String,String headers] headers to pass for the [url]
   /// [CacheManager cacheManager] to provide configuration for
   /// cache management
-  static Future<PDFDocument> fromURL(String url,
-      {Map<String, String>? headers, CacheManager? cacheManager}) async {
+  static Future<PDFDocument> fromURL(
+    String url, {
+    Map<String, String>? headers,
+    CacheManager? cacheManager,
+  }) async {
     // Download into cache
     final f = await (cacheManager ?? DefaultCacheManager()).getSingleFile(
       url,
@@ -47,7 +50,7 @@ class PDFDocument {
     );
     final document = PDFDocument().._filePath = f.path;
     try {
-      var pageCount =
+      final pageCount =
           await _channel.invokeMethod('getNumberOfPages', {'filePath': f.path});
       document.count = document.count = int.parse(pageCount as String);
     } catch (e) {
@@ -63,16 +66,16 @@ class PDFDocument {
     File file;
     try {
       final dir = await getApplicationDocumentsDirectory();
-      file = File('${dir.path}/file.pdf');
+      file = File("${dir.path}/${DateTime.now().millisecondsSinceEpoch}.pdf");
       final data = await rootBundle.load(asset);
       final bytes = data.buffer.asUint8List();
       await file.writeAsBytes(bytes, flush: true);
     } catch (e) {
       throw Exception('Error parsing asset file!');
     }
-    var document = PDFDocument().._filePath = file.path;
+    final document = PDFDocument().._filePath = file.path;
     try {
-      var pageCount = await _channel
+      final pageCount = await _channel
           .invokeMethod('getNumberOfPages', {'filePath': file.path});
       document.count = document.count = int.parse(pageCount as String);
     } catch (e) {
@@ -94,7 +97,7 @@ class PDFDocument {
   }) async {
     assert(page > 0);
     if (_preloaded && _pages.isNotEmpty) return _pages[page - 1];
-    var data = await _channel
+    final data = await _channel
         .invokeMethod('getPage', {'filePath': _filePath, 'pageNumber': page});
     return PDFPage(
       data as String?,
@@ -117,16 +120,20 @@ class PDFDocument {
     var countvar = 1;
     for (final _ in List.filled(count, null)) {
       final data = await _channel.invokeMethod(
-          'getPage', {'filePath': _filePath, 'pageNumber': countvar});
-      _pages.add(PDFPage(
-        data as String?,
-        countvar,
-        onZoomChanged: onZoomChanged,
-        zoomSteps: zoomSteps ?? 3,
-        minScale: minScale ?? 1.0,
-        maxScale: maxScale ?? 5.0,
-        panLimit: panLimit ?? 1.0,
-      ));
+        'getPage',
+        {'filePath': _filePath, 'pageNumber': countvar},
+      );
+      _pages.add(
+        PDFPage(
+          data as String?,
+          countvar,
+          onZoomChanged: onZoomChanged,
+          zoomSteps: zoomSteps ?? 3,
+          minScale: minScale ?? 1.0,
+          maxScale: maxScale ?? 5.0,
+          panLimit: panLimit ?? 1.0,
+        ),
+      );
       countvar++;
     }
     _preloaded = true;
@@ -135,7 +142,6 @@ class PDFDocument {
   // Stream all pages
   Stream<PDFPage?> getAll({final Function(double)? onZoomChanged}) {
     return Future.forEach<PDFPage?>(List.filled(count, null), (i) async {
-      print(i);
       final data = await _channel
           .invokeMethod('getPage', {'filePath': _filePath, 'pageNumber': i});
       return PDFPage(
@@ -145,4 +151,14 @@ class PDFDocument {
       );
     }).asStream() as Stream<PDFPage?>;
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PDFDocument &&
+          runtimeType == other.runtimeType &&
+          _filePath == other._filePath;
+
+  @override
+  int get hashCode => Object.hash(_filePath, count);
 }
