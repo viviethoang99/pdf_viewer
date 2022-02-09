@@ -144,7 +144,7 @@ class _PDFViewerState extends State<PDFViewer> {
   }
 
   Future<void> _preloadPages() async {
-    int countvar = 1;
+    var countvar = 1;
     for (final _ in List.filled(widget.document.count, null)) {
       final data = await widget.document.get(
         page: countvar,

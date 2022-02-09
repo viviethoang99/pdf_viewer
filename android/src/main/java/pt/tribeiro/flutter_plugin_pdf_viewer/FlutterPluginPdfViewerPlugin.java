@@ -85,13 +85,14 @@ public class FlutterPluginPdfViewerPlugin implements FlutterPlugin, MethodCallHa
                                 if (pageResult == null) {
                                     Log.d(TAG, "Retrieving page failed.");
                                     result.notImplemented();
+                                } else {
+                                    mainThreadHandler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            result.success(pageResult);
+                                        }
+                                    });
                                 }
-                                mainThreadHandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        result.success(pageResult);
-                                    }
-                                });
                                 break;
                             default:
                                 result.notImplemented();
@@ -199,7 +200,6 @@ public class FlutterPluginPdfViewerPlugin implements FlutterPlugin, MethodCallHa
                 ret = createTempPreview(bitmap, filePath, pageNumber);
             } finally {
                 page.close();
-                renderer.close();
             }
             return ret;
         } catch (Exception ex) {

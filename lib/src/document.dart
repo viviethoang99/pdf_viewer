@@ -66,7 +66,7 @@ class PDFDocument {
     File file;
     try {
       final dir = await getApplicationDocumentsDirectory();
-      file = File("${dir.path}/${DateTime.now().millisecondsSinceEpoch}.pdf");
+      file = File('${dir.path}/${DateTime.now().millisecondsSinceEpoch}.pdf');
       final data = await rootBundle.load(asset);
       final bytes = data.buffer.asUint8List();
       await file.writeAsBytes(bytes, flush: true);

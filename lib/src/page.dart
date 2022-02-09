@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:advance_pdf_viewer/src/zoomable_widget.dart';
 import 'package:flutter/widgets.dart';
 
-
 /// A class to represent PDF page
 /// [imgPath], path of the image (pdf page)
 /// [num], page number
